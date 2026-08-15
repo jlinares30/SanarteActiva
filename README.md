@@ -28,23 +28,17 @@ sanarte/
 
 ---
 
-## Guía de Instalación y Prueba End-to-End
+## Guía Rápida de Instalación y Uso
 
-### Paso 1: Cargar la extensión en el navegador
-1. Abre Google Chrome o Microsoft Edge y ve a `chrome://extensions` o `edge://extensions`.
-2. Activa el **"Modo de desarrollador"** (Developer mode).
-3. Haz clic en **"Cargar descomprimida"** (Load unpacked).
-4. Selecciona la carpeta: `d:\Jorge\portfolio\sanarte`.
+1. **Cargar la Extensión:**
+   - Abre `chrome://extensions` o `edge://extensions` y activa el **Modo de desarrollador**.
+   - Selecciona **Cargar descomprimida** y elige la carpeta de este repositorio.
 
-### Paso 2: Iniciar el servidor Backend de prueba
-Abre una terminal y ejecuta:
-```bash
-node server.js
-```
-Verás en consola: `[SANARTE PULSE BACKEND] Servidor ejecutándose en http://localhost:3000`.
+2. **Iniciar el Backend de Prueba:**
+   ```bash
+   node server.js
+   ```
 
-### Paso 3: Probar la Extensión
-1. Haz clic en el ícono de **Sanarte Pulse** en la barra de extensiones.
-2. Selecciona tu área (ej. *Emergencias / Asistencial*, *UCI*, *Pediatría*).
-3. Presiona **"Probar Control de Pantalla (Overlay)"** o **"Abrir Widget de Pausa Activa"**.
-4. ¡Inicia una rutina! Verás los eventos sincronizándose en tiempo real en la consola donde ejecutas `server.js`.
+3. **Probar el Widget:**
+   - Abre cualquier página web y haz clic en el ícono de **Sanarte Pulse** en tu navegador.
+   - Interactúa con la burbuja flotante o el menú desplegable para iniciar una rutina de pausa activa.
