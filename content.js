@@ -1,9 +1,11 @@
 /**
  * ==========================================================================
- * SANARTE FLOW v2.0 - Content Script (Detección de Picos de Estrés WSI)
+ * SANARTE PULSE v2.0 - Content Script (Garantía de Privacidad Total On-Device)
  * 
- * Registra picos de carga objetiva (WSI > 75) asociando únicamente la hora 
- * y día de la semana para construir mapas de calor por Área.
+ * GARANTÍA DE PRIVACIDAD:
+ * Los micro-movimientos, clics e inactividad se procesan 100% en la memoria RAM local.
+ * NUNCA se envían al servidor datos de rendimiento ni uso de teclado/mouse.
+ * Al servidor SOLO se envían confirmaciones anónimas de pausas completadas por Área.
  * ==========================================================================
  */
 
@@ -12,6 +14,7 @@
     return;
   }
 
+  // 1. Inyección en Shadow DOM
   const rootContainer = document.createElement('div');
   rootContainer.id = 'sanarte-extension-root';
   document.body.appendChild(rootContainer);
@@ -24,11 +27,12 @@
   styleLink.href = chrome.runtime.getURL('styles.css');
   shadowRoot.appendChild(styleLink);
 
+  // 2. Variables de Procesamiento LOCAL (Nunca salen del dispositivo)
   let continuousActiveMinutes = 0;
   let lastUserActivity = Date.now();
   let interactionEventsCount = 0;
   let naturalBreakThreshold = 3 * 60 * 1000;
-  let localFatigueScore = 0;
+  let localFatigueScore = 0; // Se calcula y usa 100% LOCAL en el navegador
   let emergencySnoozeUntil = 0;
 
   let currentState = 'CHECKIN';
@@ -47,6 +51,7 @@
     });
   }
 
+  // 3. Estructura HTML
   const widgetWrapper = document.createElement('div');
   widgetWrapper.className = 'sanarte-container';
 
@@ -78,7 +83,7 @@
     <div class="sanarte-modal" id="sanarte-modal">
       <div class="sanarte-header">
         <div>
-          <div class="sanarte-header-title">🌿 Sanarte Flow</div>
+          <div class="sanarte-header-title">🌿 Sanarte Pulse</div>
           <div class="sanarte-header-subtitle" id="sanarte-header-area">${userArea}</div>
         </div>
         <button class="sanarte-close-btn" id="sanarte-close-btn">&times;</button>
@@ -89,7 +94,7 @@
     <!-- BURBUJA -->
     <button class="sanarte-bubble" id="sanarte-bubble">
       <span class="sanarte-bubble-icon">🌿</span>
-      <span class="sanarte-bubble-text">Sanarte Flow</span>
+      <span class="sanarte-bubble-text">Sanarte Pulse</span>
       <span class="sanarte-bubble-timer" id="sanarte-bubble-score">Score: 0</span>
     </button>
   `;

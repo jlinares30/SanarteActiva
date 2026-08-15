@@ -1,6 +1,6 @@
 /**
  * ==========================================================================
- * SANARTE FLOW - Backend Server con Mapa de Calor de Horas Pico (Node.js Nativo)
+ * SANARTE PULSE - Backend Server con Mapa de Calor de Horas Pico (Node.js Nativo)
  * Escucha en http://localhost:3000
  * 
  * Genera analítica anónima de Horas Pico y Días de Mayor Estrés Operativo por Área.
@@ -44,7 +44,7 @@ const server = http.createServer((req, res) => {
         eventsDB.push(cleanPayload);
         
         console.log('\n======================================================');
-        console.log('🔒 [SANARTE FLOW ANALYTICS] Evento Anónimo Registrado:');
+        console.log('🔒 [SANARTE PULSE ANALYTICS] Evento Anónimo Registrado:');
         console.log(`⏰ Hora: ${new Date(cleanPayload.timestamp).toLocaleTimeString()} (Franja: ${cleanPayload.hourOfDay}:00 hs)`);
         console.log(`📍 Área Hospitalaria: ${cleanPayload.area}`);
         console.log(`🎯 Acción: ${cleanPayload.eventType}`);

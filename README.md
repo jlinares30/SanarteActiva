@@ -1,4 +1,4 @@
-# 🌿 Sanarte Flow v2.0 - Pausas Activas Inteligentes (INSN-SB)
+# 🌿 Sanarte Pulse v2.0 - Pausas Activas Inteligentes (INSN-SB)
 
 Extensión de navegador basada en **Manifest V3** diseñada para el personal hospitalario (INSN-SB). Transforma la rutina diaria integrando **Pausas Activas Adaptativas**, monitoreo de uso de pantalla y control visual no invasivo.
 
@@ -9,7 +9,7 @@ Extensión de navegador basada en **Manifest V3** diseñada para el personal hos
 1. **100% de Compatibilidad Hospitalaria:** No requiere instalación de ejecutables pesados ni permisos de administrador en Windows. Funciona de manera nativa sobre Google Chrome o Microsoft Edge.
 2. **Monitoreo de Tiempo en Pantalla:** Detecta automáticamente el uso activo de la computadora y sugiere pausas en momentos estratégicos (evitando fatiga acumulada).
 3. **Control de Pantalla (Screen Control Overlay):** Filtro de atenuación suave con difuminado (`backdrop-filter`) que invita a realizar una micro-pausa sin interrumpir la atención de emergencias.
-4. **Respeto a la Dinámica Médica:** Permite **Iniciar la Pausa Activa (90s)**, **Posponer 10 min (Snooze)** u **Omitir por Emergencia Médica**.
+4. **Respeto a la Dinámica Médica:** Permite **Iniciar la Pausa Activa (90s)**, **Posponer 10 min (Snooze)** u **Omitir por Carga Laboral**.
 
 ---
 
@@ -41,10 +41,10 @@ Abre una terminal y ejecuta:
 ```bash
 node server.js
 ```
-Verás en consola: `🚀 [SANARTE FLOW BACKEND] Servidor ejecutándose en http://localhost:3000`.
+Verás en consola: `🚀 [SANARTE PULSE BACKEND] Servidor ejecutándose en http://localhost:3000`.
 
 ### Paso 3: Probar la Extensión
-1. Haz clic en el ícono de **Sanarte Flow** en la barra de extensiones.
+1. Haz clic en el ícono de **Sanarte Pulse** en la barra de extensiones.
 2. Selecciona tu área (ej. *Emergencias / Asistencial*, *UCI*, *Pediatría*).
 3. Presiona **"🖥️ Probar Control de Pantalla (Overlay)"** o **"🌿 Abrir Widget de Pausa Activa"**.
 4. ¡Inicia una rutina! Verás los eventos sincronizándose en tiempo real en la consola donde ejecutas `server.js`.
