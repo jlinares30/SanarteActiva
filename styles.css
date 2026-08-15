@@ -1,0 +1,422 @@
+/* ==========================================================================
+   SANARTE FLOW v2.0 - Sistema de Pausas Activas Inteligentes & Screen Control
+   Paleta: Salud & Bienestar (Teal, Menta, Esmeralda, Sombras Neumórficas Suaves)
+   ========================================================================== */
+
+:host {
+  all: initial;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Base Wrapper Fixed Position */
+.sanarte-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 999999;
+  font-family: inherit;
+  direction: ltr;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  pointer-events: auto;
+}
+
+/* ==========================================================================
+   1. Control de Pantalla Fullscreen Overlay (#sanarte-screen-overlay)
+   ========================================================================== */
+.sanarte-screen-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 999998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sanarte-screen-overlay.sanarte-active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.sanarte-overlay-card {
+  width: 90%;
+  max-width: 480px;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.2);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  animation: sanarte-pop 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes sanarte-pop {
+  0% { transform: scale(0.9) translateY(20px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.sanarte-overlay-badge {
+  background: linear-gradient(135deg, #ccfbf1, #99f6e4);
+  color: #0f766e;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 6px 16px;
+  border-radius: 9999px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.sanarte-overlay-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.3;
+}
+
+.sanarte-overlay-desc {
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.5;
+}
+
+/* ==========================================================================
+   2. Burbuja Flotante Discreta (#sanarte-bubble) - Arrastrable
+   ========================================================================== */
+.sanarte-bubble {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #14b8a6 100%);
+  color: #ffffff;
+  padding: 10px 18px;
+  border-radius: 9999px;
+  box-shadow: 0 10px 25px -5px rgba(13, 148, 136, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  cursor: grab;
+  user-select: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  backdrop-filter: blur(8px);
+}
+
+.sanarte-bubble:active {
+  cursor: grabbing;
+}
+
+.sanarte-bubble:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 14px 30px -5px rgba(13, 148, 136, 0.5);
+}
+
+.sanarte-bubble.sanarte-pulsing {
+  animation: sanarte-attention-pulse 1.5s infinite;
+}
+
+@keyframes sanarte-attention-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.7); }
+  70% { box-shadow: 0 0 0 15px rgba(20, 184, 166, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(20, 184, 166, 0); }
+}
+
+.sanarte-bubble-icon {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.sanarte-bubble-text {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+.sanarte-bubble-timer {
+  font-size: 11px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 2px 7px;
+  border-radius: 9999px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   3. Panel Desplegable Modal (#sanarte-modal)
+   ========================================================================== */
+.sanarte-modal {
+  width: 360px;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(15, 23, 42, 0.05);
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(16px) scale(0.95);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-bottom: 4px;
+}
+
+.sanarte-modal.sanarte-open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+}
+
+.sanarte-header {
+  background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
+  color: #ffffff;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sanarte-header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.sanarte-header-subtitle {
+  font-size: 11px;
+  opacity: 0.85;
+  margin-top: 2px;
+}
+
+.sanarte-close-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: #ffffff;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.sanarte-close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.sanarte-body {
+  padding: 20px;
+}
+
+/* VISTAS & RUTINAS DE PAUSAS ACTIVAS */
+.sanarte-section-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.sanarte-routine-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sanarte-routine-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.sanarte-routine-card:hover {
+  border-color: #0d9488;
+  background: #f0fdf4;
+  transform: translateX(3px);
+}
+
+.sanarte-routine-icon {
+  font-size: 22px;
+}
+
+.sanarte-routine-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.sanarte-routine-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.sanarte-routine-time {
+  font-size: 11px;
+  color: #64748b;
+}
+
+/* ANIMACIÓN RESPIRACIÓN 4-7-8 & EJERCICIOS */
+.sanarte-pausa-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+}
+
+.sanarte-breathing-wrapper {
+  position: relative;
+  width: 130px;
+  height: 130px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 8px 0;
+}
+
+.sanarte-breathing-outer-ring {
+  position: absolute;
+  width: 130px;
+  height: 130px;
+  border: 2px dashed #cbd5e1;
+  border-radius: 50%;
+  animation: sanarte-spin 30s linear infinite;
+}
+
+@keyframes sanarte-spin {
+  100% { transform: rotate(360deg); }
+}
+
+.sanarte-breathing-circle {
+  width: 65px;
+  height: 65px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #2dd4bf 0%, #0d9488 100%);
+  box-shadow: 0 0 25px rgba(20, 184, 166, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 20px;
+  animation: sanarte-breathe-478 19s ease-in-out infinite;
+}
+
+@keyframes sanarte-breathe-478 {
+  0% { transform: scale(1); }
+  21.05% { transform: scale(1.5); background: radial-gradient(circle, #34d399 0%, #059669 100%); }
+  57.89% { transform: scale(1.5); background: radial-gradient(circle, #fbbf24 0%, #d97706 100%); }
+  100% { transform: scale(1); }
+}
+
+.sanarte-timer-display {
+  font-size: 26px;
+  font-weight: 800;
+  color: #0f766e;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ACCIONES & BOTONES */
+.sanarte-action-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.sanarte-btn-primary {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #0f766e, #0d9488);
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 13.5px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
+  transition: all 0.2s;
+}
+
+.sanarte-btn-primary:hover {
+  background: linear-gradient(135deg, #115e59, #0f766e);
+}
+
+.sanarte-btn-secondary {
+  width: 100%;
+  padding: 10px;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sanarte-btn-secondary:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.sanarte-btn-danger {
+  width: 100%;
+  padding: 8px;
+  background: transparent;
+  color: #ef4444;
+  border: none;
+  font-weight: 600;
+  font-size: 11.5px;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.sanarte-btn-danger:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+.sanarte-status-bar {
+  font-size: 11px;
+  color: #64748b;
+  background: #f8fafc;
+  padding: 6px 12px;
+  border-radius: 8px;
+  margin-top: 10px;
+  text-align: center;
+  border: 1px solid #e2e8f0;
+}
