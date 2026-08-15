@@ -1,6 +1,6 @@
 /**
  * ==========================================================================
- * SANARTE PULSE v2.0 - Content Script (Garantía de Privacidad Total On-Device)
+ * SANARTE PULSE - Content Script (Garantía de Privacidad Total On-Device)
  * 
  * GARANTÍA DE PRIVACIDAD:
  * Los micro-movimientos, clics e inactividad se procesan 100% en la memoria RAM local.
@@ -32,7 +32,7 @@
   let lastUserActivity = Date.now();
   let interactionEventsCount = 0;
   let naturalBreakThreshold = 3 * 60 * 1000;
-  let localFatigueScore = 0; // Se calcula y usa 100% LOCAL en el navegador
+  let localFatigueScore = 0;
   let emergencySnoozeUntil = 0;
 
   let currentState = 'CHECKIN';
@@ -164,7 +164,7 @@
   function sendStressPeakEvent(wsiScore) {
     const d = new Date();
     const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-    
+
     sendAnonymousEvent('WORKLOAD_STRESS_PEAK', {
       hourOfDay: d.getHours(),
       dayOfWeek: days[d.getDay()],
@@ -202,7 +202,7 @@
     isDragging = false;
     startX = e.clientX;
     startY = e.clientY;
-    
+
     const computedStyle = window.getComputedStyle(widgetWrapper);
     initialRight = parseInt(computedStyle.right, 10) || 24;
     initialBottom = parseInt(computedStyle.bottom, 10) || 24;
@@ -472,6 +472,6 @@
       if (res.ok && chrome.storage && chrome.storage.local) {
         chrome.storage.local.remove('sanarte_pending_events');
       }
-    } catch (e) {}
+    } catch (e) { }
   }
 })();

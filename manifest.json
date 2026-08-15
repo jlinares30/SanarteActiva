@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "Sanarte Pulse - Pausas Activas (INSN-SB)",
-  "version": "2.0.0",
+  "version": "1.0.0",
   "description": "Widget de Pausas Activas Inteligentes para personal hospitalario. Monitoreo de tiempo en pantalla, pausas adaptativas y rutinas saludables.",
-  "author": "Sanarte Pulse Team",
+  "author": "Arcano Team",
   "permissions": [
     "storage",
     "scripting",
@@ -23,15 +23,24 @@
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"],
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ],
       "run_at": "document_idle"
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["styles.css", "icons/*"],
-      "matches": ["<all_urls>"]
+      "resources": [
+        "styles.css",
+        "icons/*"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
     }
   ],
   "icons": {
