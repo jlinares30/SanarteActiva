@@ -1,4 +1,4 @@
-# Sanarte Pulse - Pausas Activas Inteligentes (INSN-SB)
+# Sanarte Activa - Pausas Activas Inteligentes (INSN-SB)
 
 Extensión de navegador basada en **Manifest V3** diseñada para el personal hospitalario (INSN-SB). Transforma la rutina diaria integrando **Pausas Activas Adaptativas**, monitoreo de uso de pantalla y control visual no invasivo.
 
@@ -40,5 +40,5 @@ sanarte/
    ```
 
 3. **Probar el Widget:**
-   - Abre cualquier página web y haz clic en el ícono de **Sanarte Pulse** en tu navegador.
+   - Abre cualquier página web y haz clic en el ícono de **Sanarte Activa** en tu navegador.
    - Interactúa con la burbuja flotante o el menú desplegable para iniciar una rutina de pausa activa.

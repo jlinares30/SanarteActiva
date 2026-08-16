@@ -1,11 +1,7 @@
 /**
  * ==========================================================================
- * SANARTE PULSE - Content Script (Garantía de Privacidad Total On-Device)
- * 
- * GARANTÍA DE PRIVACIDAD:
- * Los micro-movimientos, clics e inactividad se procesan 100% en la memoria RAM local.
- * NUNCA se envían al servidor datos de rendimiento ni uso de teclado/mouse.
- * Al servidor SOLO se envían confirmaciones anónimas de pausas completadas por Área.
+ * SANARTE ACTIVA - Content Script (Versión Ultra Robusta)
+ * Drag & Drop libre + Apertura instantánea de Encuesta de Estrés
  * ==========================================================================
  */
 
@@ -14,7 +10,7 @@
     return;
   }
 
-  // 1. Inyección en Shadow DOM
+  // 1. Raíz Shadow DOM
   const rootContainer = document.createElement('div');
   rootContainer.id = 'sanarte-extension-root';
   document.body.appendChild(rootContainer);
@@ -27,7 +23,7 @@
   styleLink.href = chrome.runtime.getURL('styles.css');
   shadowRoot.appendChild(styleLink);
 
-  // 2. Variables de Procesamiento LOCAL (Nunca salen del dispositivo)
+  // 2. Variables de Estado Local
   let continuousActiveMinutes = 0;
   let lastUserActivity = Date.now();
   let interactionEventsCount = 0;
@@ -69,9 +65,6 @@
           <button class="sanarte-btn-primary" id="sanarte-start-overlay-btn">
             ▶ Iniciar Pausa Activa (90s)
           </button>
-          <button class="sanarte-btn-secondary" id="sanarte-snooze-btn">
-            ⏰ Posponer 10 minutos (Snooze)
-          </button>
           <button class="sanarte-btn-danger" id="sanarte-emergency-btn">
             🚨 Omitir por Carga Laboral
           </button>
@@ -83,7 +76,7 @@
     <div class="sanarte-modal" id="sanarte-modal">
       <div class="sanarte-header">
         <div>
-          <div class="sanarte-header-title">🌿 Sanarte Pulse</div>
+          <div class="sanarte-header-title">🌿 Sanarte Activa</div>
           <div class="sanarte-header-subtitle" id="sanarte-header-area">${userArea}</div>
         </div>
         <button class="sanarte-close-btn" id="sanarte-close-btn">&times;</button>
@@ -94,26 +87,33 @@
     <!-- BURBUJA -->
     <button class="sanarte-bubble" id="sanarte-bubble">
       <span class="sanarte-bubble-icon">🌿</span>
-      <span class="sanarte-bubble-text">Sanarte Pulse</span>
-      <span class="sanarte-bubble-timer" id="sanarte-bubble-score">Score: 0</span>
+      <span class="sanarte-bubble-text">Sanarte Activa</span>
+      <span class="sanarte-bubble-timer" id="sanarte-bubble-score">Score: 0%</span>
     </button>
   `;
 
   shadowRoot.appendChild(widgetWrapper);
 
-  const overlayEl = shadowRoot.getElementById('sanarte-screen-overlay');
-  const modalEl = shadowRoot.getElementById('sanarte-modal');
-  const bubbleEl = shadowRoot.getElementById('sanarte-bubble');
-  const closeBtnEl = shadowRoot.getElementById('sanarte-close-btn');
-  const bodyEl = shadowRoot.getElementById('sanarte-body');
-  const scoreBadgeEl = shadowRoot.getElementById('sanarte-bubble-score');
-  const headerAreaEl = shadowRoot.getElementById('sanarte-header-area');
+  // Referencias a Elementos usando querySelector
+  const overlayEl = shadowRoot.querySelector('#sanarte-screen-overlay');
+  const overlayCardEl = shadowRoot.querySelector('.sanarte-overlay-card');
+  const modalEl = shadowRoot.querySelector('#sanarte-modal');
+  const bubbleEl = shadowRoot.querySelector('#sanarte-bubble');
+  const closeBtnEl = shadowRoot.querySelector('#sanarte-close-btn');
+  const bodyEl = shadowRoot.querySelector('#sanarte-body');
+  const scoreBadgeEl = shadowRoot.querySelector('#sanarte-bubble-score');
+  const headerAreaEl = shadowRoot.querySelector('#sanarte-header-area');
 
-  const startOverlayBtn = shadowRoot.getElementById('sanarte-start-overlay-btn');
-  const snoozeBtn = shadowRoot.getElementById('sanarte-snooze-btn');
-  const emergencyBtn = shadowRoot.getElementById('sanarte-emergency-btn');
+  const startOverlayBtn = shadowRoot.querySelector('#sanarte-start-overlay-btn');
+  const emergencyBtn = shadowRoot.querySelector('#sanarte-emergency-btn');
 
-  // MOTOR DE COMPORTAMIENTO Y CÁLCULO WSI
+  function triggerAdaptativeOverlay(reason) {
+    if (overlayCardEl) overlayCardEl.style.display = 'flex';
+    overlayEl.classList.add('sanarte-active');
+    sendAnonymousEvent('ADAPTATIVE_BREAK_TRIGGERED', { reason });
+  }
+
+  // MOTOR DE COMPORTAMIENTO LOCAL
   function onUserInteraction() {
     const now = Date.now();
     if (now - lastUserActivity > naturalBreakThreshold) {
@@ -145,7 +145,6 @@
       scoreBadgeEl.textContent = `Score: ${localFatigueScore}%`;
     }
 
-    // Si el score supera el 75%, registrar pico de carga objetiva WSI
     if (localFatigueScore >= 75 && (now - lastUserActivity < 60000)) {
       sendStressPeakEvent(localFatigueScore);
     }
@@ -164,7 +163,6 @@
   function sendStressPeakEvent(wsiScore) {
     const d = new Date();
     const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-
     sendAnonymousEvent('WORKLOAD_STRESS_PEAK', {
       hourOfDay: d.getHours(),
       dayOfWeek: days[d.getDay()],
@@ -173,62 +171,86 @@
   }
 
   // ACCIONES DEL OVERLAY
-  startOverlayBtn.addEventListener('click', () => {
-    overlayEl.classList.remove('sanarte-active');
+  startOverlayBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (overlayCardEl) overlayCardEl.style.display = 'none';
     bubbleEl.classList.remove('sanarte-pulsing');
-    toggleModal(true);
-    startRoutine('BREATH', 90);
+
+    selectedRoutine = 'BREATH';
+    remainingSeconds = 90;
+    currentState = 'PAUSE';
+
+    if (headerAreaEl) headerAreaEl.textContent = userArea;
+    modalEl.classList.add('sanarte-open');
+    isModalOpen = true;
+    renderView();
   });
 
-  snoozeBtn.addEventListener('click', () => {
-    overlayEl.classList.remove('sanarte-active');
-    bubbleEl.classList.remove('sanarte-pulsing');
-    emergencySnoozeUntil = Date.now() + 10 * 60 * 1000;
-    sendAnonymousEvent('SNOOZE');
-  });
-
-  emergencyBtn.addEventListener('click', () => {
+  emergencyBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (overlayCardEl) overlayCardEl.style.display = 'none';
     overlayEl.classList.remove('sanarte-active');
     bubbleEl.classList.remove('sanarte-pulsing');
     emergencySnoozeUntil = Date.now() + 30 * 60 * 1000;
     sendAnonymousEvent('EMERGENCY_DISMISS');
   });
 
-  // BURBUJA ARRASTRABLE
-  let isDragging = false;
-  let startX, startY, initialRight, initialBottom;
+  // ESCUCHA DE MENSAJES DESDE POPUP
+  if (chrome.runtime && chrome.runtime.onMessage) {
+    chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
+      if (req.action === 'TRIGGER_BREAK') {
+        triggerAdaptativeOverlay('Prueba manual de control de pantalla');
+      } else if (req.action === 'OPEN_WIDGET') {
+        toggleModal(true);
+      }
+      sendResponse({ status: 'OK' });
+      return true;
+    });
+  }
 
-  bubbleEl.addEventListener('mousedown', (e) => {
-    isDragging = false;
+  // ==========================================================================
+  // LÓGICA DE ARRASTRE Y CLIC ULTRA ESTABLE DE LA BURBUJA FLOTANTE
+  // ==========================================================================
+  let isMoving = false;
+  let startX = 0, startY = 0;
+  let startRight = 24, startBottom = 24;
+
+  bubbleEl.onmousedown = function (e) {
+    isMoving = false;
     startX = e.clientX;
     startY = e.clientY;
 
     const computedStyle = window.getComputedStyle(widgetWrapper);
-    initialRight = parseInt(computedStyle.right, 10) || 24;
-    initialBottom = parseInt(computedStyle.bottom, 10) || 24;
+    startRight = parseInt(computedStyle.right, 10) || 24;
+    startBottom = parseInt(computedStyle.bottom, 10) || 24;
 
-    function onMouseMove(moveEvent) {
-      const deltaX = startX - moveEvent.clientX;
-      const deltaY = startY - moveEvent.clientY;
-      if (Math.abs(deltaX) > 4 || Math.abs(deltaY) > 4) isDragging = true;
-      widgetWrapper.style.right = `${initialRight + deltaX}px`;
-      widgetWrapper.style.bottom = `${initialBottom + deltaY}px`;
+    document.onmousemove = function (moveEvent) {
+      const dx = startX - moveEvent.clientX;
+      const dy = startY - moveEvent.clientY;
+
+      // Si se mueve más de 4 píxeles, marcar como arrastre
+      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+        isMoving = true;
+        widgetWrapper.style.right = (startRight + dx) + 'px';
+        widgetWrapper.style.bottom = (startBottom + dy) + 'px';
+      }
+    };
+
+    document.onmouseup = function () {
+      document.onmousemove = null;
+      document.onmouseup = null;
+    };
+  };
+
+  bubbleEl.onclick = function (e) {
+    if (!isMoving) {
+      toggleModal();
     }
+  };
 
-    function onMouseUp() {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
-    }
-
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
-  });
-
-  bubbleEl.addEventListener('click', () => {
-    if (!isDragging) toggleModal();
-  });
-
-  closeBtnEl.addEventListener('click', () => toggleModal(false));
+  closeBtnEl.onclick = function (e) {
+    toggleModal(false);
+  };
 
   function toggleModal(open) {
     isModalOpen = typeof open === 'boolean' ? open : !isModalOpen;
@@ -239,10 +261,17 @@
       renderView();
     } else {
       modalEl.classList.remove('sanarte-open');
+      modalEl.classList.remove('sanarte-modal-large');
+      overlayEl.classList.remove('sanarte-active');
+      if (overlayCardEl) overlayCardEl.style.display = 'flex';
+      closeBtnEl.style.display = 'flex';
       clearTimers();
     }
   }
 
+  // ==========================================================================
+  // VISTAS DEL WIDGET
+  // ==========================================================================
   function renderView() {
     clearTimers();
     if (currentState === 'CHECKIN') renderCheckinView();
@@ -251,99 +280,90 @@
     else if (currentState === 'CONFIRMATION') renderConfirmationView();
   }
 
+  // VISTA 1: Encuesta de Nivel de Estrés
   function renderCheckinView() {
     bodyEl.innerHTML = `
       <div class="sanarte-section-title">
-        ¿Cómo sientes tu nivel de carga en este momento?
+        Encuesta de Salud Laboral:<br>¿Cuál es tu nivel de estrés en este momento?
       </div>
       <div class="sanarte-routine-grid">
-        <button class="sanarte-routine-card" id="btn-opt-optimal" style="border-left: 4px solid #10b981;">
+        <button class="sanarte-routine-card" id="btn-stress-1" style="border-left: 4px solid #10b981;">
           <span class="sanarte-routine-icon">🟢</span>
           <div class="sanarte-routine-info">
-            <span class="sanarte-routine-name">Óptimo / Estable</span>
-            <span class="sanarte-routine-time">Me siento bien para continuar.</span>
+            <span class="sanarte-routine-name">Nivel 1: Bajo / Estable</span>
+            <span class="sanarte-routine-time">Me siento con buena energía y sin tensión.</span>
           </div>
         </button>
 
-        <button class="sanarte-routine-card" id="btn-opt-high" style="border-left: 4px solid #f59e0b;">
+        <button class="sanarte-routine-card" id="btn-stress-2" style="border-left: 4px solid #f59e0b;">
           <span class="sanarte-routine-icon">🟡</span>
           <div class="sanarte-routine-info">
-            <span class="sanarte-routine-name">Carga Elevada</span>
-            <span class="sanarte-routine-time">Cansancio moderado, sugiero pausa.</span>
+            <span class="sanarte-routine-name">Nivel 2: Moderado</span>
+            <span class="sanarte-routine-time">Cierta tensión en vista o postura.</span>
           </div>
         </button>
 
-        <button class="sanarte-routine-card" id="btn-opt-critical" style="border-left: 4px solid #ef4444;">
+        <button class="sanarte-routine-card" id="btn-stress-3" style="border-left: 4px solid #f97316;">
+          <span class="sanarte-routine-icon">🟠</span>
+          <div class="sanarte-routine-info">
+            <span class="sanarte-routine-name">Nivel 3: Elevado</span>
+            <span class="sanarte-routine-time">Carga intensa, necesito descompresión.</span>
+          </div>
+        </button>
+
+        <button class="sanarte-routine-card" id="btn-stress-4" style="border-left: 4px solid #ef4444;">
           <span class="sanarte-routine-icon">🔴</span>
           <div class="sanarte-routine-info">
-            <span class="sanarte-routine-name">Saturación / Necesito Pausa</span>
-            <span class="sanarte-routine-time">Tensión acumulada por pantalla.</span>
+            <span class="sanarte-routine-name">Nivel 4: Severo / Saturación</span>
+            <span class="sanarte-routine-time">Agotamiento alto, requiere pausa urgente.</span>
           </div>
         </button>
       </div>
 
       <div class="sanarte-status-bar">
-        🔒 Datos agregados por franja horaria (100% Anónimo)
+        🔒 Encuesta 100% Anónima (Procesamiento On-Device)
       </div>
     `;
 
-    bodyEl.querySelector('#btn-opt-optimal').addEventListener('click', () => {
-      sendAnonymousEvent('CHECKIN_OPTIMAL');
-      currentState = 'CONFIRMATION';
+    bodyEl.querySelector('#btn-stress-1').onclick = function () {
+      sendAnonymousEvent('STRESS_SURVEY_RESPONSE', { stressLevel: 1, stressLabel: 'Bajo' });
+      selectedRoutine = 'EYE';
+      remainingSeconds = 60;
+      currentState = 'PAUSE';
       renderView();
-    });
-    bodyEl.querySelector('#btn-opt-high').addEventListener('click', () => {
-      sendAnonymousEvent('CHECKIN_HIGH');
-      currentState = 'ROUTINE_SELECT';
+    };
+
+    bodyEl.querySelector('#btn-stress-2').onclick = function () {
+      sendAnonymousEvent('STRESS_SURVEY_RESPONSE', { stressLevel: 2, stressLabel: 'Moderado' });
+      selectedRoutine = 'BREATH';
+      remainingSeconds = 90;
+      currentState = 'PAUSE';
       renderView();
-    });
-    bodyEl.querySelector('#btn-opt-critical').addEventListener('click', () => {
-      sendAnonymousEvent('CHECKIN_CRITICAL');
-      currentState = 'ROUTINE_SELECT';
+    };
+
+    bodyEl.querySelector('#btn-stress-3').onclick = function () {
+      sendAnonymousEvent('STRESS_SURVEY_RESPONSE', { stressLevel: 3, stressLabel: 'Elevado' });
+      selectedRoutine = 'STRETCH';
+      remainingSeconds = 90;
+      currentState = 'PAUSE';
       renderView();
-    });
+    };
+
+    bodyEl.querySelector('#btn-stress-4').onclick = function () {
+      sendAnonymousEvent('STRESS_SURVEY_RESPONSE', { stressLevel: 4, stressLabel: 'Severo' });
+      selectedRoutine = 'VIDEO_YT';
+      remainingSeconds = 90;
+      currentState = 'PAUSE';
+      renderView();
+    };
   }
 
   function renderRoutineSelectView() {
-    bodyEl.innerHTML = `
-      <div class="sanarte-section-title">Elige tu Pausa Activa:</div>
-      <div class="sanarte-routine-grid">
-        <div class="sanarte-routine-card" data-routine="BREATH" data-time="90">
-          <span class="sanarte-routine-icon">🧘</span>
-          <div class="sanarte-routine-info">
-            <span class="sanarte-routine-name">Respiración 4-7-8</span>
-            <span class="sanarte-routine-time">90s • Disminuye estrés</span>
-          </div>
-        </div>
-
-        <div class="sanarte-routine-card" data-routine="EYE" data-time="60">
-          <span class="sanarte-routine-icon">👁️</span>
-          <div class="sanarte-routine-info">
-            <span class="sanarte-routine-name">Descanso Visual 20-20-20</span>
-            <span class="sanarte-routine-time">60s • Alivia fatiga de pantalla</span>
-          </div>
-        </div>
-
-        <div class="sanarte-routine-card" data-routine="STRETCH" data-time="90">
-          <span class="sanarte-routine-icon">🙆</span>
-          <div class="sanarte-routine-info">
-            <span class="sanarte-routine-name">Estiramiento Cuello/Hombros</span>
-            <span class="sanarte-routine-time">90s • Alivia tensión acumulada</span>
-          </div>
-        </div>
-      </div>
-    `;
-
-    bodyEl.querySelectorAll('.sanarte-routine-card').forEach(card => {
-      card.addEventListener('click', () => {
-        selectedRoutine = card.getAttribute('data-routine');
-        remainingSeconds = parseInt(card.getAttribute('data-time'), 10);
-        startRoutine(selectedRoutine, remainingSeconds);
-      });
-    });
+    renderCheckinView();
   }
 
   function startRoutine(routine, duration) {
+    clearTimers();
     selectedRoutine = routine;
     remainingSeconds = duration;
     currentState = 'PAUSE';
@@ -352,36 +372,84 @@
   }
 
   function renderPauseView() {
+    clearTimers();
+
+    modalEl.classList.add('sanarte-modal-large');
+    overlayEl.classList.add('sanarte-active');
+    closeBtnEl.style.display = 'none';
+
     let titleText = 'Respiración Guiada';
-    let iconSymbol = '🫁';
-    if (selectedRoutine === 'EYE') { titleText = 'Descanso Visual 20-20-20'; iconSymbol = '👀'; }
-    else if (selectedRoutine === 'STRETCH') { titleText = 'Estiramiento Muscular'; iconSymbol = '🤸'; }
+    let isVideoMode = selectedRoutine === 'VIDEO_YT';
+
+    if (selectedRoutine === 'EYE') titleText = 'Descanso Visual 20-20-20';
+    else if (selectedRoutine === 'STRETCH') titleText = 'Estiramiento Muscular';
+    else if (selectedRoutine === 'VIDEO_YT') titleText = 'Video Guiado de Pausa Activa';
+
+    const ytVideoId = 'inpok4MKVLM';
 
     bodyEl.innerHTML = `
       <div class="sanarte-pausa-card">
         <div class="sanarte-section-title">${titleText}</div>
-        <div class="sanarte-breathing-wrapper">
-          <div class="sanarte-breathing-outer-ring"></div>
-          <div class="sanarte-breathing-circle"><span>${iconSymbol}</span></div>
+
+        <div class="sanarte-mode-toggle">
+          <button class="sanarte-tab-btn ${!isVideoMode ? 'active' : ''}" id="btn-toggle-anim">🧘 Animación</button>
+          <button class="sanarte-tab-btn ${isVideoMode ? 'active' : ''}" id="btn-toggle-video">📺 Video</button>
         </div>
-        <div class="sanarte-routine-name" id="sanarte-guide-text">Iniciando rutina...</div>
-        <div class="sanarte-timer-display" id="sanarte-routine-timer">${formatTime(remainingSeconds)}</div>
-        <button class="sanarte-btn-secondary" id="sanarte-finish-btn">Finalizar Pausa</button>
+
+        <div id="sanarte-routine-container" style="width:100%;">
+          ${isVideoMode ? `
+            <div class="sanarte-video-wrapper">
+              <iframe 
+                src="https://www.youtube-nocookie.com/embed/${ytVideoId}?autoplay=1&rel=0&modestbranding=1" 
+                title="Video de Pausa Activa"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen>
+              </iframe>
+            </div>
+          ` : `
+            <div class="sanarte-breathing-wrapper" style="margin:10px auto 16px auto;">
+              <div class="sanarte-breathing-outer-ring"></div>
+              <div class="sanarte-breathing-circle"><span>🫁</span></div>
+            </div>
+          `}
+        </div>
+
+        ${isVideoMode ? '' : `
+          <div class="sanarte-routine-name" id="sanarte-guide-text">
+            Iniciando rutina...
+          </div>
+          <div class="sanarte-timer-display" id="sanarte-routine-timer">${formatTime(remainingSeconds)}</div>
+        `}
       </div>
     `;
 
+    const btnAnim = bodyEl.querySelector('#btn-toggle-anim');
+    const btnVideo = bodyEl.querySelector('#btn-toggle-video');
+
+    btnAnim.onclick = function () {
+      selectedRoutine = 'BREATH';
+      remainingSeconds = 90;
+      renderPauseView();
+    };
+
+    btnVideo.onclick = function () {
+      selectedRoutine = 'VIDEO_YT';
+      remainingSeconds = 90;
+      renderPauseView();
+    };
+
     const timerDisplay = bodyEl.querySelector('#sanarte-routine-timer');
     const guideText = bodyEl.querySelector('#sanarte-guide-text');
-    const finishBtn = bodyEl.querySelector('#sanarte-finish-btn');
 
     routineTimer = setInterval(() => {
       remainingSeconds--;
       if (timerDisplay) timerDisplay.textContent = formatTime(remainingSeconds);
-      updateGuideInstructions(guideText);
-      if (remainingSeconds <= 0) finishRoutine();
-    }, 1000);
+      if (!isVideoMode) updateGuideInstructions(guideText);
 
-    finishBtn.addEventListener('click', finishRoutine);
+      if (remainingSeconds <= 0) {
+        finishRoutine();
+      }
+    }, 1000);
   }
 
   function updateGuideInstructions(element) {
@@ -405,6 +473,12 @@
     clearTimers();
     localFatigueScore = 0;
     continuousActiveMinutes = 0;
+
+    modalEl.classList.remove('sanarte-modal-large');
+    overlayEl.classList.remove('sanarte-active');
+    if (overlayCardEl) overlayCardEl.style.display = 'flex';
+    closeBtnEl.style.display = 'flex';
+
     currentState = 'CONFIRMATION';
     sendAnonymousEvent('PAUSA_ACTIVA_COMPLETED', { routine: selectedRoutine });
     renderView();
@@ -424,7 +498,10 @@
   }
 
   function clearTimers() {
-    if (routineTimer) { clearInterval(routineTimer); routineTimer = null; }
+    if (routineTimer) {
+      clearInterval(routineTimer);
+      routineTimer = null;
+    }
   }
 
   function formatTime(sec) {

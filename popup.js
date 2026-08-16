@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Guardar área seleccionada al cambiar
+  // Guardar área seleccionada
   if (selectArea) {
     selectArea.addEventListener('change', () => {
       const area = selectArea.value;
@@ -22,46 +22,48 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Probar Control de Pantalla Overlay
-  if (triggerOverlayBtn) {
-    triggerOverlayBtn.addEventListener('click', async () => {
+  // Ejecutar comando en la pestaña activa
+  async function triggerTabAction(actionName) {
+    try {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (tab && tab.id) {
-        chrome.tabs.sendMessage(tab.id, { action: 'TRIGGER_BREAK' }).catch(() => {
-          // Fallback con scripting si no responde el listener
+      if (!tab || !tab.id) return;
+
+      // Enviar mensaje al script de contenido inyectado
+      chrome.tabs.sendMessage(tab.id, { action: actionName }, (response) => {
+        // Fallback con scripting directo si el mensaje no tuvo respuesta
+        if (chrome.runtime.lastError || !response) {
           chrome.scripting.executeScript({
             target: { tabId: tab.id },
-            func: () => {
+            func: (action) => {
               const root = document.getElementById('sanarte-extension-root');
               if (root && root.shadowRoot) {
-                const overlay = root.shadowRoot.getElementById('sanarte-screen-overlay');
-                if (overlay) overlay.classList.add('sanarte-active');
+                if (action === 'TRIGGER_BREAK') {
+                  const overlay = root.shadowRoot.getElementById('sanarte-screen-overlay');
+                  if (overlay) overlay.classList.add('sanarte-active');
+                } else if (action === 'OPEN_WIDGET') {
+                  const bubble = root.shadowRoot.getElementById('sanarte-bubble');
+                  if (bubble) bubble.click();
+                }
               }
-            }
-          });
-        });
-      }
+            },
+            args: [actionName]
+          }).catch(err => console.log('Execution note:', err));
+        }
+      });
+    } catch (e) {
+      console.error('[Sanarte Activa Popup] Error:', e);
+    }
+  }
+
+  if (triggerOverlayBtn) {
+    triggerOverlayBtn.addEventListener('click', () => {
+      triggerTabAction('TRIGGER_BREAK');
     });
   }
 
-  // Abrir Widget de Pausa Activa
   if (openWidgetBtn) {
-    openWidgetBtn.addEventListener('click', async () => {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (tab && tab.id) {
-        chrome.tabs.sendMessage(tab.id, { action: 'OPEN_WIDGET' }).catch(() => {
-          chrome.scripting.executeScript({
-            target: { tabId: tab.id },
-            func: () => {
-              const root = document.getElementById('sanarte-extension-root');
-              if (root && root.shadowRoot) {
-                const bubble = root.shadowRoot.getElementById('sanarte-bubble');
-                if (bubble) bubble.click();
-              }
-            }
-          });
-        });
-      }
+    openWidgetBtn.addEventListener('click', () => {
+      triggerTabAction('OPEN_WIDGET');
     });
   }
 });
