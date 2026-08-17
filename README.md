@@ -47,7 +47,9 @@ sanarte/
 
 ## Video Demostrativo
 
-<video src="demo.mp4" controls width="100%" poster=""></video>
+
+https://github.com/user-attachments/assets/b8073a34-2538-4c2a-9919-61d71eeb91c4
+
 
 
 
