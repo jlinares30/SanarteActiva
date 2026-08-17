@@ -9,7 +9,6 @@ Extensión de navegador basada en **Manifest V3** diseñada para el personal hos
 1. **100% de Compatibilidad Hospitalaria:** No requiere instalación de ejecutables pesados ni permisos de administrador en Windows. Funciona de manera nativa sobre Google Chrome o Microsoft Edge.
 2. **Monitoreo de Tiempo en Pantalla:** Detecta automáticamente el uso activo de la computadora y sugiere pausas en momentos estratégicos (evitando fatiga acumulada).
 3. **Control de Pantalla (Screen Control Overlay):** Filtro de atenuación suave con difuminado (`backdrop-filter`) que invita a realizar una micro-pausa sin interrumpir la atención de emergencias.
-4. **Respeto a la Dinámica Médica:** Permite **Iniciar la Pausa Activa (90s)**, **Posponer 10 min (Snooze)** u **Omitir por Carga Laboral**.
 
 ---
 
