@@ -42,3 +42,16 @@ sanarte/
 3. **Probar el Widget:**
    - Abre cualquier página web y haz clic en el ícono de **Sanarte Activa** en tu navegador.
    - Interactúa con la burbuja flotante o el menú desplegable para iniciar una rutina de pausa activa.
+
+---
+
+## Video Demostrativo
+
+<video src="demo.mp4" controls width="100%" poster=""></video>
+
+
+
+## Créditos y Licencia
+
+Desarrollado por el **Equipo Arcano** para la **Hackatón del Instituto Nacional de Salud del Niño San Borja (INSN-SB)**.
+
